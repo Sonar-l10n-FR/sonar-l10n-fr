@@ -9,7 +9,7 @@
 
 	<name>French Pack for SonarQube</name>
 	<description>Language Pack for French</description>
-	<url>https://github.com/jycr/sonar-l10n-fr.git</url>
+	<url>https://github.com/Sonar-l10n-FR/sonar-l10n-fr</url>
 	<inceptionYear>2011</inceptionYear>
 	<licenses>
 		<license>
@@ -46,17 +46,21 @@
 			<name>jycr</name>
 			<organizationUrl>https://github.com/jycr</organizationUrl>
 		</contributor>
+		<contributor>
+			<name>Greenystuff</name>
+			<organizationUrl>https://github.com/Greenystuff</organizationUrl>
+		</contributor>
 	</contributors>
 
 	<scm>
-		<connection>scm:git:https://github.com/jycr/sonar-l10n-fr.git</connection>
-		<developerConnection>scm:git:https@github.com:jycr/sonar-l10n-fr.git</developerConnection>
-		<url>https://github.com/jycr/sonar-l10n-fr</url>
+		<connection>scm:git:https://github.com/Sonar-l10n-FR/sonar-l10n-fr.git</connection>
+		<developerConnection>scm:git:git@github.com:Sonar-l10n-FR/sonar-l10n-fr.git</developerConnection>
+		<url>https://github.com/Sonar-l10n-FR/sonar-l10n-fr</url>
 		<tag>HEAD</tag>
 	</scm>
 	<issueManagement>
 		<system>GitHub</system>
-		<url>https://github.com/jycr/sonar-l10n-fr/issues</url>
+		<url>https://github.com/Sonar-l10n-FR/sonar-l10n-fr/issues</url>
 	</issueManagement>
 
 	<properties>
@@ -85,7 +89,7 @@
 		<maven.compiler.target>17</maven.compiler.target>
 		<maven.compiler.release>17</maven.compiler.release>
 
-		<sonar.organization>jycr</sonar.organization>
+		<sonar.organization>sonar-l10n-fr</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 

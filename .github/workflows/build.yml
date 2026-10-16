@@ -46,4 +46,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >
           mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar
-          -Dsonar.projectKey=jycr_sonar-l10n-fr
+          -Dsonar.projectKey=Sonar-l10n-FR_sonar-l10n-fr

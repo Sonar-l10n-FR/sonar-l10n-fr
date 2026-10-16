@@ -1,19 +1,25 @@
+<p align="center">
+  <img src="assets/logo.svg" alt="French Pack for SonarQube" width="120" />
+</p>
+
 # French Pack for SonarQube
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jycr_sonar-l10n-fr&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=jycr_sonar-l10n-fr)
-[![Build](https://github.com/jycr/sonar-l10n-fr/actions/workflows/build.yml/badge.svg)](https://github.com/jycr/sonar-l10n-fr/actions/workflows/build.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Sonar-l10n-FR_sonar-l10n-fr&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Sonar-l10n-FR_sonar-l10n-fr)
+[![Build](https://github.com/Sonar-l10n-FR/sonar-l10n-fr/actions/workflows/build.yml/badge.svg)](https://github.com/Sonar-l10n-FR/sonar-l10n-fr/actions/workflows/build.yml)
 
 This plugin offers a French language localization of [SonarQube](http://www.sonarqube.org/).
 
+This repository continues [jycr/sonar-l10n-fr](https://github.com/jycr/sonar-l10n-fr), whose last change dates from June 2023. The update was first offered there, in [#47](https://github.com/jycr/sonar-l10n-fr/issues/47) and [#48](https://github.com/jycr/sonar-l10n-fr/pull/48). It lives in an organization rather than a personal account so that maintenance can change hands without the project moving again.
+
 ## Releases
 
-Releases can be installed directly via the Update Center page (browse Administration > System > Update Center). They can also be [downloaded manually](https://github.com/jycr/sonar-l10n-fr/releases) (see [release notes](https://github.com/jycr/sonar-l10n-fr/releases)).
+Releases can be [downloaded here](https://github.com/Sonar-l10n-FR/sonar-l10n-fr/releases), each with its release notes and the SHA-256 of the jar. Until the Marketplace points to this repository, its Update Center (Administration > Marketplace) still offers 10.0.0.
 
 ## Contributing
 
 ### Have questions or feedback?
 
-To provide feedback (request a feature, report a bug etc.), you can fill an [issue](https://github.com/jycr/sonar-l10n-fr/issues).
+To provide feedback (request a feature, report a bug etc.), you can fill an [issue](https://github.com/Sonar-l10n-FR/sonar-l10n-fr/issues).
 
 ### Pull Request (PR)
 
@@ -115,3 +121,7 @@ Translation proposed: _**:fr: Gestionnaire de Sources**_
 > Webhooks notify external services when a project analysis is complete. An HTTP POST request including a JSON payload is sent to each URL.
 
 Translation proposed: _**:fr: Notification Web**_
+
+---
+
+<sub>SonarQube™ and Sonar™ are registered trademarks of SonarSource SA. This project is not a Sonar™ product, and is neither affiliated with nor endorsed by SonarSource.</sub>

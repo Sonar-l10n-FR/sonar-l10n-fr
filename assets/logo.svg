@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="French Pack for SonarQube">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="38%" r="65%">
+      <stop offset="0" stop-color="#3B82F6" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#3B82F6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect x="4" y="4" width="112" height="112" rx="28" fill="#0B1220" stroke="#24304A" stroke-width="2"/>
+  <rect x="4" y="4" width="112" height="112" rx="28" fill="url(#glow)"/>
+  <!-- A speech bubble: the pack gives the interface its words. -->
+  <path d="M36 24h48a14 14 0 0 1 14 14v28a14 14 0 0 1-14 14H52l-20 16 4-16a14 14 0 0 1-14-14V38a14 14 0 0 1 14-14z" fill="#F8FAFC"/>
+  <!-- FR, drawn as strokes so it renders the same without any font. -->
+  <g fill="none" stroke="#0B1220" stroke-width="9" stroke-linejoin="round">
+    <path d="M42 67V39h17M42 53h13" stroke-linecap="square"/>
+    <path d="M67 67V39h9a8 8 0 0 1 0 16h-9M75 55l9 12" stroke-linecap="round"/>
+  </g>
+  <!-- The three colours of the French flag. -->
+  <rect x="62" y="89" width="12" height="7" rx="1.5" fill="#2563EB"/>
+  <rect x="74" y="89" width="12" height="7" fill="#F8FAFC"/>
+  <rect x="86" y="89" width="12" height="7" rx="1.5" fill="#EF4444"/>
+</svg>
