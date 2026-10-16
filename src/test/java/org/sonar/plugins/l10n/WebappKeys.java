@@ -28,7 +28,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -64,16 +68,30 @@ public final class WebappKeys {
   private static final Path REPORT = Paths.get("target/webapp-keys.properties");
   private static final Path UNDEFINED = Paths.get("target/webapp-keys-undefined.txt");
 
-  /** Script tags in index.html, which is where the bundle names are. */
+  /** Script tags in index.html, which is where the entry bundle names are. */
   private static final Pattern SCRIPT = Pattern.compile("src=\"([^\"]+\\.js)\"");
+
+  /**
+   * A chunk another bundle loads: {@code window.__assetsPath("js/x.js")} in the preload map of
+   * the entry bundle, {@code "./x.js"} in a static or dynamic import between chunks.
+   *
+   * <p>Up to 26.9 the catalogue sat in a bundle index.html names. From 26.10 the entry bundle is
+   * a 13 kB loader, and the catalogue lives in a chunk it only imports lazily -- reading the
+   * script tags alone finds no message at all. Every chunk is therefore followed, transitively.
+   */
+  private static final Pattern CHUNK =
+    Pattern.compile("(?:__assetsPath\\(\"js/|\"\\./)([A-Za-z0-9_.\\-]+\\.js)\"");
+
+  /** A message key: it must contain a dot, see {@link #QUOTED_ENTRY}. */
+  private static final String DOTTED_KEY = "\"([a-z][A-Za-z0-9_]*(?:\\.[A-Za-z0-9_\\-]+)+)\":";
 
   /**
    * A quoted key mapped to a quoted string. The key must contain a dot: bare identifiers in
    * minified code are overwhelmingly variable names, not message keys, and the few real ones
-   * are recovered by {@link #BARE_ENTRY}.
+   * are recovered by {@link #BARE_ENTRIES}.
    */
   private static final Pattern QUOTED_ENTRY =
-    Pattern.compile("\"([a-z][A-Za-z0-9_]*(?:\\.[A-Za-z0-9_\\-]+)+)\":\"((?:[^\"\\\\]|\\\\.)*)\"");
+    Pattern.compile(DOTTED_KEY + "\"((?:[^\"\\\\]|\\\\.)*)\"");
 
   /**
    * The same entry, written with a single-quoted value. The minifier switches quotes when the
@@ -82,22 +100,49 @@ public final class WebappKeys {
    * invisible to {@link #QUOTED_ENTRY} for that reason alone.
    */
   private static final Pattern SINGLE_QUOTED_ENTRY =
-    Pattern.compile("\"([a-z][A-Za-z0-9_]*(?:\\.[A-Za-z0-9_\\-]+)+)\":'((?:[^'\\\\]|\\\\.)*)'");
-
-  /** Unquoted key mapped to a quoted string, for the single-word keys such as {@code username}. */
-  private static final Pattern BARE_ENTRY =
-    Pattern.compile("[{,]([a-z][a-z0-9_]{2,}):\"((?:[^\"\\\\]|\\\\.)*)\"");
+    Pattern.compile(DOTTED_KEY + "'((?:[^'\\\\]|\\\\.)*)'");
 
   /**
-   * A key the code asks for, rather than one the catalogue defines. Only
-   * {@code formatMessage({id: "..."})} counts: an {@code id} in any other object is a DOM
-   * identifier, as in {@code <TextField id="name.github">}, and not a message at all.
+   * The same entry, written with a template literal. 26.10 is minified by Rolldown, which writes
+   * every string value of the catalogue between backticks: neither pattern above matches a
+   * single one of its 8,000 entries.
+   */
+  private static final Pattern BACKTICK_ENTRY =
+    Pattern.compile(DOTTED_KEY + "`((?:[^`\\\\]|\\\\.)*)`");
+
+  private static final List<Pattern> DOTTED_ENTRIES = List.of(QUOTED_ENTRY, SINGLE_QUOTED_ENTRY, BACKTICK_ENTRY);
+
+  /**
+   * Unquoted key mapped to a string, for the single-word keys such as {@code username}, under
+   * both minifiers' quoting.
+   *
+   * <p>Only read in the catalogue itself, see {@link #CATALOGUE_THRESHOLD}: elsewhere the same
+   * shape is mostly code -- date-fns locales, highlight.js grammars, the design system's props
+   * -- and following every chunk would otherwise turn hundreds of them into "messages".
+   */
+  private static final List<Pattern> BARE_ENTRIES = List.of(
+    Pattern.compile("[{,]([a-z][a-z0-9_]{2,}):\"((?:[^\"\\\\]|\\\\.)*)\""),
+    Pattern.compile("[{,]([a-z][a-z0-9_]{2,}):`((?:[^`\\\\]|\\\\.)*)`"));
+
+  /**
+   * How many dotted entries make a bundle the catalogue. The catalogue chunk of 26.10 carries
+   * about 8,000; no other chunk carries more than one.
+   */
+  private static final int CATALOGUE_THRESHOLD = 1000;
+
+  /**
+   * A key the code asks for, rather than one the catalogue defines: a call whose single
+   * argument is an object starting with {@code id}, as {@code formatMessage({id: "..."})}
+   * compiles. The call itself is what tells it apart from a DOM identifier, as in
+   * {@code <TextField id="name.github">}, which compiles to a props object passed as a second
+   * argument, {@code jsx(TextField, {id: ...})}, and is not a message at all. The function name
+   * cannot be relied on: Rolldown minifies {@code formatMessage} to a single letter.
    *
    * <p>A key asked for but never defined is an upstream bug -- react-intl renders the key
    * itself on screen -- and a translation the pack can supply, since nothing else does.
    */
   private static final Pattern REFERENCED =
-    Pattern.compile("formatMessage\\s*\\(\\s*\\{\\s*id:\\s*\"([a-zA-Z][A-Za-z0-9_]*(?:\\.[A-Za-z0-9_\\-]+)+)\"");
+    Pattern.compile("\\(\\s*\\{\\s*id:\\s*[\"`]([a-zA-Z][A-Za-z0-9_]*(?:\\.[A-Za-z0-9_\\-]+)+)[\"`]");
 
   private WebappKeys() {
     // utility class
@@ -119,14 +164,27 @@ public final class WebappKeys {
 
     TreeMap<String, String> messages = new TreeMap<>();
     Set<String> referenced = new TreeSet<>();
-    for (String script : scripts) {
+    Deque<String> pending = new ArrayDeque<>(scripts);
+    Set<String> read = new HashSet<>();
+    while (!pending.isEmpty()) {
+      String script = pending.pop();
+      if (!read.add(script)) {
+        continue;
+      }
       String body = get(client, script.startsWith("http") ? script : base + script);
-      collect(QUOTED_ENTRY, body, messages, true);
-      collect(SINGLE_QUOTED_ENTRY, body, messages, true);
-      collect(BARE_ENTRY, body, messages, false);
+      TreeMap<String, String> dotted = new TreeMap<>();
+      DOTTED_ENTRIES.forEach(pattern -> collect(pattern, body, dotted, true));
+      messages.putAll(dotted);
+      if (dotted.size() >= CATALOGUE_THRESHOLD) {
+        BARE_ENTRIES.forEach(pattern -> collect(pattern, body, messages, false));
+      }
       Matcher asked = REFERENCED.matcher(body);
       while (asked.find()) {
         referenced.add(asked.group(1));
+      }
+      Matcher chunk = CHUNK.matcher(body);
+      while (chunk.find()) {
+        pending.push("/js/" + chunk.group(1));
       }
     }
 
@@ -138,7 +196,7 @@ public final class WebappKeys {
     referenced.removeAll(messages.keySet());
     Files.write(UNDEFINED, String.join("\n", referenced).getBytes(StandardCharsets.UTF_8));
 
-    System.out.printf("%d messages read from %d bundle(s) at %s%n", messages.size(), scripts.size(), base);
+    System.out.printf("%d messages read from %d bundle(s) at %s%n", messages.size(), read.size(), base);
     System.out.println("Written to " + REPORT);
     System.out.printf("%d key(s) the code asks for but nothing defines -- see %s%n",
       referenced.size(), UNDEFINED);
@@ -172,6 +230,14 @@ public final class WebappKeys {
           if (i + 4 < value.length()) {
             out.append((char) Integer.parseInt(value.substring(i + 1, i + 5), 16));
             i += 4;
+          }
+        }
+        // Rolldown writes a non-breaking space as \xA0. Read as an unknown escape, it came out
+        // as the letters "xA0", glued to the word before it.
+        case 'x' -> {
+          if (i + 2 < value.length()) {
+            out.append((char) Integer.parseInt(value.substring(i + 1, i + 3), 16));
+            i += 2;
           }
         }
         default -> out.append(next);
