@@ -1,8 +1,10 @@
 #!/usr/bin/env sh
 # Runs Maven inside a container, so no local Maven/JDK install is required.
 #
-# JDK 17 is not arbitrary: sonar-core and sonar-testing-harness 26.9 are compiled
-# with class file major version 61 (Java 17). An older JDK cannot read them.
+# JDK 21 is not arbitrary: sonar-core and sonar-testing-harness 26.10 are compiled
+# with class file major version 65 (Java 21). An older JDK cannot read them. The
+# plugin itself still targets Java 17 (maven.compiler.release in pom.xml), so the
+# jar keeps loading on older servers.
 #
 # The whole repository is mounted, .git included: maven-git-versioning-extension
 # derives the artifact version from git metadata and fails without it.
@@ -25,5 +27,5 @@ exec docker run --rm \
   -v "$REPO_ROOT":/workspace \
   -w /workspace \
   -v sonar-l10n-fr-m2:/root/.m2 \
-  maven:3.9-eclipse-temurin-17 \
+  maven:3.9-eclipse-temurin-21 \
   mvn "$@"
