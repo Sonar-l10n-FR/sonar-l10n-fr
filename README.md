@@ -9,7 +9,7 @@
 
 This plugin offers a French language localization of [SonarQube](http://www.sonarqube.org/).
 
-This repository continues [jycr/sonar-l10n-fr](https://github.com/jycr/sonar-l10n-fr), whose last change dates from June 2023. The update was first offered there, in [#47](https://github.com/jycr/sonar-l10n-fr/issues/47) and [#48](https://github.com/jycr/sonar-l10n-fr/pull/48). It lives in an organization rather than a personal account so that maintenance can change hands without the project moving again.
+Since October 2026 the repository lives in the [Sonar-l10n-FR](https://github.com/Sonar-l10n-FR) organization. jycr, its previous maintainer, handed it over there ([#47](https://github.com/Sonar-l10n-FR/sonar-l10n-fr/issues/47)) so that maintenance no longer depends on a personal account, and can change hands without the project moving again. Links to `jycr/sonar-l10n-fr` redirect here.
 
 ## Releases
 
